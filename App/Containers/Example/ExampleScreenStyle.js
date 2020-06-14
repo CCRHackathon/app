@@ -1,32 +1,20 @@
-import { StyleSheet } from 'react-native'
-import { Helpers, Metrics, Fonts, Colors } from 'App/Theme'
+import {StyleSheet} from 'react-native';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-export default StyleSheet.create({
-  error: {
-    ...Fonts.normal,
-    color: Colors.error,
-    marginBottom: Metrics.tiny,
-    textAlign: 'center',
+const AppStyle = StyleSheet.create({
+  Outer: {
+    padding: 20,
+    paddingTop: 50,
+    paddingBottom: 50,
+    display: 'flex',
   },
-  instructions: {
-    ...Fonts.normal,
-    fontStyle: 'italic',
-    marginBottom: Metrics.tiny,
-    textAlign: 'center',
+  OuterButton: {
+    alignItems: 'center',
+    backgroundColor: 'deepskyblue',
+    marginBottom: 20,
+    padding: 10,
+    borderRadius: 5,
   },
-  logoContainer: {
-    ...Helpers.fullWidth,
-    height: 300,
-    marginBottom: 25,
-  },
-  result: {
-    ...Fonts.normal,
-    marginBottom: Metrics.tiny,
-    textAlign: 'center',
-  },
-  text: {
-    ...Fonts.normal,
-    marginBottom: Metrics.tiny,
-    textAlign: 'center',
-  },
-})
+});
+
+export default AppStyle;

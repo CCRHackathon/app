@@ -1,105 +1,150 @@
-import React, { Fragment, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   SafeAreaView,
-  StyleSheet,
   ScrollView,
   View,
-  Button,
   Text,
   StatusBar,
+  PermissionsAndroid,
   ToastAndroid,
-  DeviceEventEmitter,
-  NativeModules
+  Alert,
+  TouchableOpacity,
 } from 'react-native';
-
+import AppStyle from './ExampleScreenStyle';
 import {
-  Header,
-  LearnMoreLinks,
-  Colors,
-  DebugInstructions,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  initialize,
+  isSuccessfulInitialize,
+  startDiscoveringPeers,
+  stopDiscoveringPeers,
+  unsubscribeFromPeersUpdates,
+  unsubscribeFromConnectionInfoUpdates,
+  subscribeOnConnectionInfoUpdates,
+  subscribeOnPeersUpdates,
+  connect,
+  disconnect,
+  createGroup,
+  removeGroup,
+  getAvailablePeers,
+  sendFile,
+  receiveFile,
+  getConnectionInfo,
+} from 'react-native-wifi-p2p';
 
-const { RNFloatingBubble } = NativeModules;
+function App() {
+  const [Devices, setDevices] = useState([]);
 
-import { showFloatingBubble, hideFloatingBubble, requestPermission, checkPermission, initialize,  } from "react-native-floating-bubble"
-
-const showToast = text => ToastAndroid.show(text, 1000)
-
-const ExampleScreen = ({navigation}) => {
-  const onAdd = () => showFloatingBubble().then(() => showToast("Add Floating Button"))
-  const onHide = () => hideFloatingBubble().then(() => showToast("Manually Removed Bubble")).catch(() => showToast("Failed to remove"))
-  const onRequestPermission = () => requestPermission().then(() => showToast("Permission received")).catch(() => showToast("Failed to get permission"))
-  const onCheckPermissoin = () => checkPermission().then((value) => showToast(`Permission: ${value ? 'Yes' : 'No'}`)).catch(() => showToast("Failed to check"))
-  const onInit = () => initialize().then(() => showToast("Init")).catch(() => showToast("Failed init"));
-
-  const showFloatingBubbleGig = (x = 150, y = 150) => RNFloatingBubble.showFloatingBubble(x, y);
   useEffect(() => {
-    const subscriptionPress = DeviceEventEmitter.addListener("floating-bubble-press", function (e) {
-      navigation.navigate('SplashScreen')
+    PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+      {
+        title: 'Access to wi-fi P2P mode',
+        message: 'ACCESS_COARSE_LOCATION',
+      },
+    ).then(granted => {
+      if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+        ToastAndroid.show('Permissão negada: p2p não vai funcionar.', 1000);
+      }
     });
-    const subscriptionRemove = DeviceEventEmitter.addListener("floating-bubble-remove", function (e) {
-      showToast("Remove Bubble")
-    });
+
     return () => {
-      subscriptionPress.remove();
-      subscriptionRemove.remove();
-    }
-  }, [])
+      unsubscribeFromConnectionInfoUpdates(event =>
+        console.log('unsubscribeFromConnectionInfoUpdates', event),
+      );
+      unsubscribeFromPeersUpdates(event =>
+        console.log('unsubscribeFromPeersUpdates', event),
+      );
+    };
+  }, []);
+
+  const HandleNewPeers = peers => {
+    ToastAndroid.show('New Peers', 1000);
+    setDevices(peers);
+  };
+
+  const HandleNewInfo = (info, secondParam) => {
+    ToastAndroid.show('New Info: ' + JSON.stringify(info), 1000);
+  };
+
+  const ConnectToDevice = device => {
+    connect(device.deviceAddress).then(() =>
+      ToastAndroid.show(`Successfully connected to ${device.deviceName}`, 1000),
+    );
+  };
+
   return (
-    <Fragment>
-      <StatusBar barStyle="dark-content" />
-      <SafeAreaView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}>
-          <Header />
-          <View style={{ padding: 30 }}>
-            <Text>Check Permission</Text>
-            <Button style={styles.button} title="Check" onPress={onCheckPermissoin} />
-            <Text>Ger Permission</Text>
-            <Button style={styles.button} title="Get Permission" onPress={onRequestPermission} />
-            <Text>Initialize Bubble Manage</Text>
-            <Button style={styles.button} title="Initialize" onPress={onInit} />
-            <Text>Add the bubble</Text>
-            <Button style={styles.button} title="Add Bubble" onPress={onAdd} />
-            <Text>Remove the bubble</Text>
-            <Button style={styles.button} title="Hide Bubble" onPress={onHide} />
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </Fragment>
+    <SafeAreaView>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        style={AppStyle.Outer}>
+        <Text>Actions</Text>
+        <TouchableOpacity
+          style={AppStyle.OuterButton}
+          onPress={() => {
+            ToastAndroid.show('Setting Up P2P Communcation', 1000);
+            initialize();
+            isSuccessfulInitialize().then(status => {
+              startDiscoveringPeers()
+                .then(() => {
+                  subscribeOnPeersUpdates(({devices}) =>
+                    HandleNewPeers(devices),
+                  );
+                  subscribeOnConnectionInfoUpdates(HandleNewInfo);
+                })
+                .catch(err =>{
+                  ToastAndroid.show('Error: ' + err.toString(), 1000),
+                  console.log(err)
+                } 
+                );
+            });
+          }}>
+          <Text>Setup</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={AppStyle.OuterButton}
+          onPress={() => {
+            initialize();
+            isSuccessfulInitialize().then(status =>
+              ToastAndroid.show('Initialization Successful', 1000),
+            );
+          }}>
+          <Text>1. Init</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={AppStyle.OuterButton}
+          onPress={() => {
+            startDiscoveringPeers()
+              .then(() => ToastAndroid.show('Started Discovering Peers', 1000))
+              .catch(err =>
+                ToastAndroid.show('Error: ' + err.toString(), 1000),
+              );
+          }}>
+          <Text>2. Encontrar Peers</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={AppStyle.OuterButton}
+          onPress={() => {
+            ToastAndroid.show('Subscribing to Updates', 1000);
+            subscribeOnPeersUpdates(({devices}) => HandleNewPeers(devices));
+            subscribeOnConnectionInfoUpdates(HandleNewInfo);
+          }}>
+          <Text>3. Atualização constante</Text>
+        </TouchableOpacity>
+      </ScrollView>
+      <ScrollView style={AppStyle.Outer}>
+        <Text>Dispositivos</Text>
+        {Devices.map((el, i) => (
+          <TouchableOpacity
+            key={i}
+            style={AppStyle.OuterButton}
+            onPress={() => {
+              ToastAndroid.show(`Connecting to ${el.deviceName}`, 1000);
+            }}>
+            <Text>{JSON.stringify(el)}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </SafeAreaView>
   );
-};
+}
 
-const styles = StyleSheet.create({
-  scrollView: {
-    backgroundColor: Colors.lighter,
-  },
-  body: {
-    backgroundColor: Colors.white,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-    color: Colors.black,
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-    color: Colors.dark,
-  },
-  button: {
-    margin: 30
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default ExampleScreen;
+export default App;
