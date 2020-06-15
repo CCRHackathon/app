@@ -35,6 +35,8 @@ target 'Boilerplate' do
   pod 'Folly', :podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'
   pod 'RNFloatingBubble', :path => '../node_modules/react-native-floating-bubble'
 
+  pod 'react-native-webview', :path => '../node_modules/react-native-webview'
+
   target 'BoilerplateTests' do
     inherit! :search_paths
     # Pods for testing

@@ -8,6 +8,9 @@ import SplashScreen from 'App/Containers/SplashScreen/SplashScreen'
 import ProfileScreen from 'App/Containers/ProfileScreen/'
 import AlertScreen from 'App/Containers/SendAlert/'
 import ConfirmAlert from 'App/Containers/ConfirmAlert/'
+import RatingScreen from 'App/Containers/RatingScreen/'
+import Transmissions from 'App/Containers/Transmissions/'
+import Destiny from 'App/Containers/DestinyScreen/'
 
 import {ActiveTabColor, InactiveTabColor} from '../Theme/Colors.js'
 
@@ -22,7 +25,7 @@ const BottomStack = createBottomTabNavigator(
       }
     },
     MainScreen: {
-      screen: ExampleScreen,
+      screen: RatingScreen,
       navigationOptions: {
         tabBarLabel: (() => (<Text style={{ fontSize: 14, alignSelf: 'center', fontWeight: 'bold', marginTop: 4}}> avaliação </Text>)),
         tabBarIcon:(({focused}) => (<Icon name="ios-star" color="black" focused={focused} color={focused ? '#604acb' : InactiveTabColor} size={30}/>))
@@ -61,7 +64,9 @@ const Stack = createStackNavigator(
   {
     App: BottomStack,
     AlertScreen,
-    ConfirmAlert
+    ConfirmAlert,
+    Transmissions,
+    Destiny
 
 }, {
   initialRouteName: 'App',
